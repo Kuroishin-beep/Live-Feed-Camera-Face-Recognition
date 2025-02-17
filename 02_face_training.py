@@ -80,8 +80,8 @@ def train_model():
     faces, ids = getImagesAndLabels(src_folder, subfolders)
         
     if len (faces) > 0:
-        recognizer.train(faces.np.array(ids))
-        recognizer.write(model_path)
+        recognizer.train(faces, np.array(ids))
+        recognizer.write(os.path.join(model_path, "face_recognizer.yml"))
         print(f"\n[INFO] {len(np.unique(ids))} faces trained. Model saved at {model_path}")
     else:
         print("\n[ERROR] No faces detected. Training aborted.")
