@@ -1,41 +1,58 @@
-import cv2
+"""
+Organize and assign IDs to faces from the dataset for training
+==> The script will rename and structure the dataset for training
+==> Each image will have a unique ID based on the user (Julia, Sean, Kiara, Angelica)
+
+Modified for pre-existing dataset use.
+"""
+
 import os
+import shutil
 
-cam = cv2.VideoCapture(0)
-cam.set(3, 640) # set video width
-cam.set(4, 480) # set video height
+# Define the dataset paths
+SOURCE_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
+TARGET_DIR = os.path.join(SOURCE_DIR, "dataset")  # Organized dataset folder
 
-face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+# List of users and their IDs
+USERS = {
+    "Julia": 1,
+    "Sean": 2,
+    "Kiara": 3,
+    "Angelica": 4
+}
 
-# For each person, enter one numeric face id
-face_id = input('\n enter user id end press <return> ==>  ')
+# Create target directory if it doesn't exist
+os.makedirs(TARGET_DIR, exist_ok=True)
 
-print("\n [INFO] Initializing face capture. Look the camera and wait ...")
-# Initialize individual sampling face count
-count = 0
+# Function to process and rename images
+def organize_dataset():
+    print("[INFO] Organizing dataset...")
+    for user_name, user_id in USERS.items():
+        user_source_path = os.path.join(SOURCE_DIR, user_name)
+        user_target_path = os.path.join(TARGET_DIR, user_name)
+        
+        if not os.path.exists(user_source_path):
+            print(f"[WARNING] Source folder for {user_name} does not exist. Skipping...")
+            continue
+        
+        # Create a target directory for the user
+        os.makedirs(user_target_path, exist_ok=True)
+        
+        # Process images in the user's source directory
+        count = 0
+        for file_name in os.listdir(user_source_path):
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):  # Check for image files
+                count += 1
+                source_file = os.path.join(user_source_path, file_name)
+                target_file = os.path.join(user_target_path, f"{user_name}.{user_id}.{count}.jpg")
+                
+                # Copy and rename the file
+                shutil.copy(source_file, target_file)
+        
+        print(f"[INFO] Processed {count} images for {user_name}.")
+    
+    print("[INFO] Dataset organization complete.")
 
-while(True):
-    ret, img = cam.read()
-    img = cv2.flip(img, -1) # flip video image vertically
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_detector.detectMultiScale(gray, 1.3, 5)
-
-    for (x,y,w,h) in faces:
-        cv2.rectangle(img, (x,y), (x+w,y+h), (255,0,0), 2)     
-        count += 1
-
-        # Save the captured image into the datasets folder
-        cv2.imwrite("dataset/User." + str(face_id) + '.' + str(count) + ".jpg", gray[y:y+h,x:x+w])
-
-        cv2.imshow('image', img)
-
-    k = cv2.waitKey(100) & 0xff # Press 'ESC' for exiting video
-    if k == 27:
-        break
-    elif count >= 30: # Take 30 face sample and stop video
-         break
-
-# Do a bit of cleanup
-print("\n [INFO] Exiting Program and cleanup stuff")
-cam.release()
-cv2.destroyAllWindows()
+# Run the script
+if __name__ == "__main__":
+    organize_dataset()
