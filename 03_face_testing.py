@@ -10,7 +10,7 @@ recognizer.read(MODEL_PATH)
 face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # Define the label map (user IDs to names)
-LABEL_MAP = {
+FACE_MAP = {
     1: "Julia",
     2: "Sean",
     3: "Kiara",
@@ -31,7 +31,7 @@ def recognize_face(input_image_path):
     for (x, y, w, h) in faces_detected:
         face = gray[y:y+h, x:x+w]
         label, confidence = recognizer.predict(face)
-        name = LABEL_MAP.get(label, "Unknown")
+        name = FACE_MAP.get(label, "Unknown")
 
         # Display the recognized face with its label
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -46,5 +46,5 @@ def recognize_face(input_image_path):
     cv2.destroyAllWindows()
 
 # Example usage: Pass an image path for recognition
-input_image_path = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\02_Testing_Dataset\Group (testing)\Group (testing)14.jpg"
+input_image_path = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\Julia\Julia1.jpg"
 recognize_face(input_image_path)

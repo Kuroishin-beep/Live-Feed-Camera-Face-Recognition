@@ -1,58 +1,76 @@
-import os
 import cv2
 import numpy as np
+from PIL import Image
+import os
 
-# Define paths for the dataset and model
-DATASET_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
-MODEL_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model"
-MODEL_PATH = os.path.join(MODEL_DIR, "face_recognizer.yml")
+# Base path for face image dataset
+src_folder = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
+subfolders = ['Julia', 'Kiara', 'Sean', 'Tads']
 
-# Create the model directory if it doesn't exist
-os.makedirs(MODEL_DIR, exist_ok=True)
-
-# Initialize the LBPH face recognizer
 recognizer = cv2.face.LBPHFaceRecognizer_create()
+detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
-# Initialize the face detector
-face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
-# Function to prepare the training data
-def prepare_training_data():
-    print("[INFO] Preparing training data...")
-    faces = []
-    labels = []
-    label_map = {}
-
-    # Iterate over users (subfolders)
-    for user_id, user_name in enumerate(os.listdir(DATASET_DIR)):
-        user_folder = os.path.join(DATASET_DIR, user_name)
+# Function to get images and labels from subfolders
+def getImagesAndLabels(src_folder, subfolders):
+    faceSamples = []
+    ids = []
+    name_to_id = {name: idx + 1 for idx, name in enumerate(subfolders)}
+    
+    for name in subfolders:
+        folder_path = os.path.join(src_folder, name)
+        if not os.path.exists(folder_path):
+            print(f"[WARNING] Folder {folder_path} does not exist, skipping...")
+            continue
         
-        # Only process folders
-        if os.path.isdir(user_folder):
-            label_map[user_id] = user_name
-            print(f"[INFO] Processing images for {user_name} (ID: {user_id})")
+        imagePaths = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg', '.jpeg')) and f.startswith(name)]
+        
+        for imagePath in imagePaths:
+            try:
+                # Load image and convert to grayscale
+                PIL_img = Image.open(imagePath).convert('L')
+                img_numpy = np.array(PIL_img, 'uint8')
 
-            for file_name in os.listdir(user_folder):
-                if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-                    # Check if filename starts with the user's name, e.g., "Julia_1"
-                    if file_name.startswith(user_name):
-                        img_path = os.path.join(user_folder, file_name)
-                        img = cv2.imread(img_path)
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                        faces_detected = face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                # Check if image is empty or unsupported format
+                if img_numpy is None or img_numpy.size == 0:
+                    print(f"[ERROR] Skipping {imagePath}: Empty or unsupported image format.")
+                    continue
 
-                        # If faces are detected, add them to training data
-                        for (x, y, w, h) in faces_detected:
-                            face = gray[y:y+h, x:x+w]
-                            faces.append(face)
-                            labels.append(user_id)
+                id = name_to_id[name]  # Assign numeric ID based on folder name
+                faces = detector.detectMultiScale(img_numpy, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-    return faces, labels, label_map
+                if len(faces) == 0:
+                    print(f"[WARNING] No face detected in {imagePath}, skipping...")
+                    continue
 
-# Train the model
-faces, labels, label_map = prepare_training_data()
-recognizer.train(faces, np.array(labels))
+                print(f"[INFO] Processing {imagePath} - Found {len(faces)} face(s)")
+                
+                for (x, y, w, h) in faces:
+                    face = img_numpy[y:y + h, x:x + w]  # Extract face region
+                    faceSamples.append(face)
+                    ids.append(id)
 
-# Save the trained model
-recognizer.save(MODEL_PATH)
-print(f"[INFO] Training complete. Model saved at {MODEL_PATH}")
+                    # Display each detected face for verification
+                    cv2.imshow(f"Training - {name}", face)
+                    cv2.waitKey(100)  # Pause briefly to visualize
+                
+            except Exception as e:
+                print(f"[ERROR] Error processing {imagePath}: {e}")
+
+    cv2.destroyAllWindows()  # Close any open OpenCV windows
+    return faceSamples, ids
+
+print("\n[INFO] Training faces. It will take a few seconds. Wait...")
+faces, ids = getImagesAndLabels(src_folder, subfolders)
+
+if len(faces) > 0:
+    recognizer.train(faces, np.array(ids))
+    
+    # Ensure model directory exists
+    model_path = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model"
+    os.makedirs(model_path, exist_ok=True)
+    
+    # Save the trained model
+    recognizer.write(os.path.join(model_path, 'face_recognizer.yml'))
+    print(f"\n[INFO] {len(np.unique(ids))} faces trained. Model saved at {model_path}")
+else:
+    print("\n[ERROR] No faces detected. Training aborted.")
