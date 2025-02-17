@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Define paths for the dataset and model
-DATASET_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\dataset"
+DATASET_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
 MODEL_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model"
 MODEL_PATH = os.path.join(MODEL_DIR, "face_recognizer.yml")
 
