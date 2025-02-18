@@ -15,10 +15,10 @@ TARGET_DIR = os.path.join(SOURCE_DIR, "dataset")  # Organized dataset folder
 
 # List of users and their IDs
 USERS = {
-    "Julia": 1,
-    "Sean": 2,
+    "Angelica": 1,
+    "Julia": 2,
     "Kiara": 3,
-    "Angelica": 4
+    "Sean": 4
 }
 
 # Create target directory if it doesn't exist
