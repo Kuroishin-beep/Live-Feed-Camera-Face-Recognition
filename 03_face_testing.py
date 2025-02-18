@@ -4,8 +4,8 @@ import os
 
 # Configuration
 MODEL_PATH = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model\face_recognizer.yml"
-DEFAULT_IMAGE_PATH = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\dataset\Angelica\Angelica.1.2.jpg"
-CONFIDENCE_THRESHOLD = 60  # Minimum confidence percentage to accept a prediction
+DEFAULT_IMAGE_PATH = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\dataset\Sean\Sean.4.20.jpg"
+CONFIDENCE_THRESHOLD = 10  # Minimum confidence percentage to accept a prediction
 
 # Face ID-to-Name Mapping
 FACE_MAP = {
@@ -64,7 +64,7 @@ def recognize_face(input_image_path, recognizer, face_detector):
     faces_detected = face_detector.detectMultiScale(
         gray,
         scaleFactor=1.1,  # Adjust to balance speed and accuracy
-        minNeighbors=6,   # Higher value reduces false positives
+        minNeighbors=8,   # Higher value reduces false positives
         minSize=(40, 40)  # Minimum face size to detect
     )
 
