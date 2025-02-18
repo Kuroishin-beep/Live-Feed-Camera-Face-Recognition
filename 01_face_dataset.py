@@ -10,7 +10,7 @@ import os
 import shutil
 
 # Define the dataset paths
-SOURCE_DIR = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
+SOURCE_DIR = r"C:\Users\Angelica\Documents\GitHub\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
 TARGET_DIR = os.path.join(SOURCE_DIR, "dataset")  # Organized dataset folder
 
 # List of users and their IDs

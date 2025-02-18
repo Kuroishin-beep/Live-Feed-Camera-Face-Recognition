@@ -6,7 +6,7 @@ import os
 import schedule
 
 # Path to the dataset
-src_folder = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\dataset"
+src_folder = r"C:\Users\Angelica\Documents\GitHub\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\dataset"
 subfolders = ['Angelica', 'Julia', 'Kiara', 'Sean']
 
 # Initialize LBPH Recognizer & Haar Cascade
@@ -136,7 +136,7 @@ def train_model(net=None):
                 print(f"[WARNING] Skipping invalid face data at index {i}")
         
         print("\n[INFO] Model training complete.")
-        model_path = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model"
+        model_path = r"C:\Users\Angelica\Documents\GitHub\Live-Feed-Camera-Face-Recognition\Model"
         recognizer.save(os.path.join(model_path, "face_recognizer.yml"))
         print(f"[INFO] Model saved at {model_path}")
     else:
@@ -146,7 +146,7 @@ def train_model(net=None):
 print("\n[INFO] Initial face training started. This may take a few seconds...")
 
 # Check model files
-model_dir = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model"
+model_dir = r"C:\Users\Angelica\Documents\GitHub\Live-Feed-Camera-Face-Recognition\Model"
 check_model_files(model_dir)
 
 # Load DNN model
