@@ -1,116 +1,67 @@
 import cv2
 import numpy as np
-import os
+import os 
 
-# Configuration
-MODEL_PATH = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\Model\face_recognizer.yml"
-DEFAULT_IMAGE_PATH = r"D:\Github\Project\Live-Feed-Camera-Face-Recognition\01_Training_Dataset\dataset\Sean\Sean.4.20.jpg"
-CONFIDENCE_THRESHOLD = 10  # Minimum confidence percentage to accept a prediction
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read('trainer/trainer.yml')
+cascadePath = "haarcascade_frontalface_default.xml"
+faceCascade = cv2.CascadeClassifier(cascadePath);
 
-# Face ID-to-Name Mapping
-FACE_MAP = {
-    0: "Angelica",
-    1: "Julia",
-    2: "Kiara",
-    3: "Sean"
-}
+font = cv2.FONT_HERSHEY_SIMPLEX
 
-def load_model(model_path):
-    """Load the face recognition model."""
-    if not os.path.exists(model_path):
-        print(f"[ERROR] Face recognition model not found at {model_path}. Train the model first.")
-        exit()
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
-    recognizer.read(model_path)
-    print("[INFO] Face recognition model loaded successfully.")
-    return recognizer
+#iniciate id counter
+id = 0
 
-def initialize_face_detector():
-    """Initialize the face detector."""
-    cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-    if not os.path.exists(cascade_path):
-        print("[ERROR] Haar cascade file not found.")
-        exit()
-    print("[INFO] Face detector initialized.")
-    return cv2.CascadeClassifier(cascade_path)
+# names related to ids: example ==> Marcelo: id=1,  etc
+names = ['None', 'Angelica', 'Julia', 'Kiara', 'Sean'] 
 
-def preprocess_face(face):
-    """Preprocess a detected face for recognition."""
-    face_resized = cv2.resize(face, (100, 100))  # Resize to the same size used during training
-    face_normalized = cv2.normalize(face_resized, None, 0, 255, cv2.NORM_MINMAX)  # Normalize pixel values
-    return face_normalized
+# Initialize and start realtime video capture
+cam = cv2.VideoCapture(0)
+cam.set(3, 640) # set video widht
+cam.set(4, 480) # set video height
 
-def resize_image(img, width=800):
-    """Resize an image while maintaining aspect ratio."""
-    height = int((width / img.shape[1]) * img.shape[0])
-    return cv2.resize(img, (width, height))
+# Define min window size to be recognized as a face
+minW = 0.1*cam.get(3)
+minH = 0.1*cam.get(4)
 
-def recognize_face(input_image_path, recognizer, face_detector):
-    """Recognize faces in the given image."""
-    if not os.path.exists(input_image_path):
-        print(f"[ERROR] Image not found at {input_image_path}")
-        return
+while True:
 
-    img = cv2.imread(input_image_path)
-    if img is None:
-        print(f"[ERROR] Unable to read image: {input_image_path}")
-        return
+    ret, img =cam.read()
+#img = cv2.flip(img, -1) # Flip vertically
 
-    # Preprocess the image
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray = cv2.equalizeHist(gray)  # Equalize histogram for better detection
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
-    # Detect faces in the image
-    faces_detected = face_detector.detectMultiScale(
+    faces = faceCascade.detectMultiScale( 
         gray,
-        scaleFactor=1.1,  # Adjust to balance speed and accuracy
-        minNeighbors=8,   # Higher value reduces false positives
-        minSize=(40, 40)  # Minimum face size to detect
-    )
+        scaleFactor = 1.2,
+        minNeighbors = 5,
+        minSize = (int(minW), int(minH)),
+       )
 
-    if len(faces_detected) == 0:
-        print("[WARNING] No face detected in the image.")
-    else:
-        print(f"[INFO] {len(faces_detected)} face(s) detected.")
-        for (x, y, w, h) in faces_detected:
-            face = gray[y:y+h, x:x+w]
-            face_preprocessed = preprocess_face(face)
-            label, confidence = recognizer.predict(face_preprocessed)
-            confidence_score = round(100 - confidence, 2)  # Convert to percentage
+    for(x,y,w,h) in faces:
 
-            # Log the confidence score for debugging
-            print(f"[DEBUG] Face detected with confidence score: {confidence_score}% (Label: {label})")
+        cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
 
-            # Determine face label
-            if confidence_score > CONFIDENCE_THRESHOLD:
-                name = FACE_MAP.get(label, "Unknown")
-            else:
-                name = "Unknown"
+        id, confidence = recognizer.predict(gray[y:y+h,x:x+w])
 
-            # Draw rectangle and label on the image
-            color = (0, 255, 0) if name != "Unknown" else (0, 0, 255)
-            cv2.rectangle(img, (x, y), (x + w, y + h), color, 3)
-            cv2.putText(img, f"{name} ({confidence_score}%)", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 3)
-
-            # Log the result
-            if name == "Unknown":
-                print(f"[WARNING] Low confidence: Detected face with confidence {confidence_score}%. Label is 'Unknown'.")
-            else:
-                print(f"[INFO] Recognized: {name} with confidence {confidence_score}%.")
+        # Check if confidence is less them 100 ==> "0" is perfect match 
+        if (confidence < 100):
+            id = names[id]
+            confidence = "  {0}%".format(round(100 - confidence))
+        else:
+            id = "unknown"
+            confidence = "  {0}%".format(round(100 - confidence))
+        
+        cv2.putText(img, str(id), (x+5,y-5), font, 1, (255,255,255), 2)
+        cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)  
     
-    # Resize and display the image
-    img_resized = resize_image(img)
-    cv2.imshow("Recognized Faces", img_resized)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imshow('camera',img) 
 
-if __name__ == "__main__":
-    # Load model and face detector
-    recognizer = load_model(MODEL_PATH)
-    face_detector = initialize_face_detector()
+    k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
+    if k == 27:
+        break
 
-    # Specify the input image path
-    input_image_path = DEFAULT_IMAGE_PATH
-
-    # Run face recognition
-    recognize_face(input_image_path, recognizer, face_detector)
+# Do a bit of cleanup
+print("\n [INFO] Exiting Program and cleanup stuff")
+cam.release()
+cv2.destroyAllWindows()

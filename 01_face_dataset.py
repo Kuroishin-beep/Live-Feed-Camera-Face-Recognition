@@ -1,16 +1,15 @@
 """
-Organize and assign IDs to faces from the dataset for training
-==> The script will rename and structure the dataset for training
-==> Each image will have a unique ID based on the user (Julia, Sean, Kiara, Angelica)
-
-Modified for pre-existing dataset use.
+This section performs the following functions:
+    => Capture the faces from the images gathered for training.
+    => Convert each images to a gray scale.
+    => Label each images based on their respective ID
 """
 
 import os
 import shutil
 
 # Define the dataset paths
-SOURCE_DIR = r"C:\Users\Angelica\Documents\GitHub\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
+SOURCE_DIR = r"C:\Users\Angelica\Documents\Live-Feed-Camera-Face-Recognition\01_Training_Dataset"
 TARGET_DIR = os.path.join(SOURCE_DIR, "dataset")  # Organized dataset folder
 
 # List of users and their IDs
@@ -29,7 +28,7 @@ def organize_dataset():
     print("[INFO] Organizing dataset...")
     for user_name, user_id in USERS.items():
         user_source_path = os.path.join(SOURCE_DIR, user_name)
-        user_target_path = os.path.join(TARGET_DIR, user_name)
+        user_target_path = os.path.join(TARGET_DIR)
         
         if not os.path.exists(user_source_path):
             print(f"[WARNING] Source folder for {user_name} does not exist. Skipping...")
